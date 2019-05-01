@@ -1,79 +1,64 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 
+	"github.com/spf13/cobra"
 	"go.i3wm.org/i3"
 )
 
-var workspaceArg = flag.String("workspace", "", "workspace command, args: [next, prev]")
+const VERSION = "v0.2"
 
-func main() {
-	flag.Parse()
-
-	var workspaceOp WorkspaceOp
-
-	switch *workspaceArg {
-	case "next":
-		workspaceOp = WS_NEXT
-	case "prev":
-		workspaceOp = WS_PREV
-	default:
-		log.Fatal("invalid workspace argument")
-	}
-
-	switchWorkspace(workspaceOp)
+var rootCmd = &cobra.Command{
+	Use:   "i3-powertools",
+	Short: "i3-powertools",
+	Args:  cobra.MinimumNArgs(1),
 }
 
-type WorkspaceOp uint
+func init() {
+	var versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "print the version number",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("i3-powertools", VERSION)
+		},
+	}
 
-const (
-	WS_NEXT WorkspaceOp = iota // right
-	WS_PREV                    // left
-)
+	// rootCmd.AddCommand(&cobra.Command{
+	// 	Use: "bus",
+	// 	Run: func(cmd *cobra.Command, args []string) {
+	// 		recv := i3.Subscribe(i3.WindowEventType)
+	// 		go func() {
+	// 			for recv.Next() {
+	// 				ev := recv.Event().(*i3.WindowEvent)
+	// 				spew.Dump(ev)
+	// 			}
+	// 		}()
+	// 		time.Sleep(100 * time.Second)
+	// 	},
+	// })
 
-// switchWorkspace will move to the next or previous workspace, while staying
-// on the same monitor, aka output device. UX+1
-func switchWorkspace(op WorkspaceOp) {
-	workspaces, err := i3.GetWorkspaces()
+	rootCmd.AddCommand(versionCmd)
+}
+
+func main() {
+	err := rootCmd.Execute()
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
-	spacesByOutput := map[string][]i3.Workspace{}
-
-	var focusedOutput string
-	var focusedOutputIndex int
-
-	for _, ws := range workspaces {
-		spacesByOutput[ws.Output] = append(spacesByOutput[ws.Output], ws)
-		if ws.Focused {
-			focusedOutput = ws.Output
-			focusedOutputIndex = len(spacesByOutput[ws.Output]) - 1
-		}
+func getFocusedNode() *i3.Node {
+	tree, err := i3.GetTree()
+	if err != nil {
+		log.Fatal(err)
+		return nil
 	}
 
-	var gotoSpace string
+	n := tree.Root.FindFocused(func(n *i3.Node) bool {
+		return n.Focused == true
+	})
 
-	spaces := spacesByOutput[focusedOutput]
-	i := focusedOutputIndex
-
-	switch op {
-	case WS_NEXT:
-		if i == len(spaces)-1 {
-			gotoSpace = spaces[0].Name
-		} else {
-			gotoSpace = spaces[i+1].Name
-		}
-	case WS_PREV:
-		if i == 0 {
-			gotoSpace = spaces[len(spaces)-1].Name
-		} else {
-			gotoSpace = spaces[i-1].Name
-		}
-	}
-
-	i3.RunCommand(fmt.Sprintf("workspace %s", gotoSpace))
+	return n
 }
