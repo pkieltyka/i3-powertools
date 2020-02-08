@@ -5,8 +5,21 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"go.i3wm.org/i3"
+	"go.i3wm.org/i3/v4"
 )
+
+// TODO: script + interface with rofi for some controls?
+
+// can we mark a workflow..? ie. perhaps windows in rotation.. 2-3
+// like super+G to go back
+
+// more scratch-pads, perhaps with keys+commands we can
+// make up our own scratch pad, aka, hide/bring forward certain windows
+
+// universal hide window
+// rofi command to show backgronud windows.. useful.. + filter
+
+// super+t -- select last terminal, then rotate to next
 
 func init() {
 	// workspace

@@ -5,7 +5,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
-	"go.i3wm.org/i3"
+	"go.i3wm.org/i3/v4"
 )
 
 func init() {

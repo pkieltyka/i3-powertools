@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/cobra"
-	"go.i3wm.org/i3"
+	"go.i3wm.org/i3/v4"
 )
 
-const VERSION = "v0.2"
+const VERSION = "v0.3"
 
 var rootCmd = &cobra.Command{
 	Use:   "i3-powertools",
@@ -43,6 +44,10 @@ func init() {
 }
 
 func main() {
+	go events() // subscribe to events.. weeeeeeee
+
+	time.Sleep(10 * time.Minute)
+
 	err := rootCmd.Execute()
 	if err != nil {
 		log.Fatal(err)
